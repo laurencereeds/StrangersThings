@@ -1,15 +1,22 @@
 .messageContainer {
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-around;
+  display: flex;
+  align-content: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
 
-.card {
-    box-sizing: border-box;
-    display: block;
-    margin: 5px;
+.card-body {
+  box-sizing: border-box;
+  display: block;
+  margin: 10px;
+  border-color: black;
+  border-width: 2px;
+  border-style: solid;  
+  width: 300px;
+  height: 450px;
+  border-radius: 10px;
+  position: relative
 }
 
 .form-signin, .form-signup {
@@ -17,44 +24,51 @@
     max-width: 330px;
     padding: 15px;
     margin: auto;
-  }
-  .form-signin .checkbox {
+}
+
+.form-signin .checkbox {
     font-weight: 400;
-  }
-  .form-signin .form-control {
+}
+
+.form-signin .form-control {
     position: relative;
     box-sizing: border-box;
     height: auto;
     padding: 10px;
     font-size: 16px;
-  }
-  .form-signin .form-control:focus {
+}
+
+.form-signin .form-control:focus {
     z-index: 2;
-  }
-  .form-signin input[type="username"] {
+}
+
+.form-signin input[type="username"] {
     margin-bottom: -1px;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
-  }
-  .form-signin input[type="password"] {
+}
+
+.form-signin input[type="password"] {
     margin-bottom: 10px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-  }
+}
 
-  #resetButton {
+#resetButton {
     margin: 10px
-  }
+}
 
-  .modal{
+.modal{
     display: flex;
     margin-top: 10%;
     margin-left: 35%;
 }
 
-#messageField{
+.messagefield{
   padding: 1px;
   margin:5px;
+  position:absolute;
+  bottom:0;
 }
 
 #submitMessageButton {
@@ -63,4 +77,25 @@
 
 .messagefield, #button {
   text-align:center;
+}
+
+.card-body-createPost {
+  column-gap: 20px;
+  padding: 20px;
+}
+
+.sendMessage {
+  margin: 2px;
+}
+
+#button_delete_edit {
+  padding: 1px;
+  margin:10px;
+  position:absolute;
+  bottom:0;  
+  right: 0;
+}
+
+.card {
+  border:none;
 }

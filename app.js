@@ -4,7 +4,8 @@ const state = {
   token: '',
   responseObj: {},
   posts: [],
-  messages: []
+  messages: [],
+  user: ''
 };
 
 const makeHeaders = () => {
@@ -88,7 +89,8 @@ async function fetchUserData () {
   headers: makeHeaders(),
   });
   const responseObj = await response.json();
-  state.messages = responseObj.messages;
+  state.messages = responseObj.data.messages;
+  state.username = responseObj.data.username;
   } catch (error) {
     console.error(error)
   }
@@ -174,8 +176,8 @@ const navBar = () => {
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="search-form">Search</button>
       </form>
       </ul>
-
       <div class="justify-content-end">
+      <span>Hi ${state.username}</span>
       <button class="btn btn-secondary my-2 my-sm-0" id="logOutButton" type="submit">Log Out</button>
       </div>
       </div>
@@ -197,7 +199,6 @@ return navBarElem;
   <button class="btn btn-light my-2 my-sm-0" type="submit" id="search-form">Search</button>
   </form>
   </ul>
-
   <div class="justify-content-end">
   <button class="btn btn-light my-2 my-sm-0" type="submit" id="signUpButton">Sign Up</button>
   <button class="btn btn-light my-2 my-sm-0" type="submit" id="signInButton">Sign In</button> 
@@ -254,18 +255,15 @@ const createElementFromPost = (post) => {
   <p class="card-text">Price: ${price}</p>
   <p class="card-text">Location: ${location}</p>
   <p class="card-text">Will Deliver: ${willDeliver}</p>
-
   ${!isAuthor && getToken() !== undefined ? `<div class="messagefield">
   <form class="messageSend">Contact ${username} :<input class="sendMessage" type="text" placeholder="Type Your Message" aria-label="message" id="messageField"></input>
   <a href="#" class="btn btn-primary" id="submitMessageButton">Send Message</a></form></div>`: " "}
-
   ${isAuthor ? `
-  <div id="button">
+  <div id="button_delete_edit">
   <a href="#" class="btn btn-danger" id="deleteButtonAllPosts">Delete</a>
-  <button type="button" class="btn btn-secondary" data-toogle="modal" data-target="#exampleModal" id="editButtonAllPosts">Edit</a>
+  <a href="#" class="btn btn-secondary" data-toogle="modal" data-target="#editPostModal" id="editButtonAllPosts">Edit</a>
   </div>
   <div id="messages">${messages}</div>`: " "}
-
   </div>
   </div>
   </div>
@@ -295,12 +293,10 @@ const createElementFromMessage = (card) => {
   const {fromUser:{username}, post: {title}, content} = card;
   const elementFromMessage = $(`
   <div class="col-sm">
-  <div class="card" style="width: 18rem;">
   <div class="card-body">
   <h5 class="card-title">Re: ${title}</h5>
   <p class="card-text">Content: ${content}</p>
   <p class="card-text">From: ${username}</p>
-  </div>
   </div>
   </div>`)
 return elementFromMessage;
@@ -311,7 +307,7 @@ const createNewPost = (myPost) => {
 <div class="modal" id="createPostModal" aria-hidden="true">  
 <form class="newPostForm">  
 <div class="card" style="width: 35rem;">
-<div class="card-body">
+<div class="card-body-createPost">
 <h3 id="titleAlert">Create New Post</h5>
 <div class="mb-3">
 <label for="createPostTitle">Title</label>
@@ -337,11 +333,11 @@ const createNewPost = (myPost) => {
 <label for="createPostWillDeliver">Will Deliver</label>
 <input type="checkbox" class="form-control" id="createPostWillDeliver">
 </div>
+
 <div class="modal-footer">
   <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal">Close</button> 
   <button type="button" class="btn btn-lg btn-primary" id="createPostSubmitButton" disabled>Submit</button>
  </div>
-
 </div>
 </div>
 </form>
@@ -375,10 +371,10 @@ return deletedPost;
 
 const updatePostModal = (myPost) => {
   const editPostElement = $(`
-  <div class="editModal" id="editPostModal" aria-hidden="true">  
+  <div class="modal" id="editPostModal" aria-hidden="true">  
   <form class="editPostForm">  
   <div class="card" style="width: 35rem;">
-  <div class="card-body">
+  <div class="card-body-createPost">
   <h3 id="titleAlert">Edit Post</h5>
   <div class="mb-3">
   <label for="createPostTitle">Title</label>
@@ -404,17 +400,16 @@ const updatePostModal = (myPost) => {
   <label for="createPostWillDeliver">Will Deliver</label>
   <input type="checkbox" class="form-control" id="createPostWillDeliver">
   </div>
+
   <div class="modal-footer">
     <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal" id="editPostCloseButton">Close</button> 
     <button type="button" class="btn btn-lg btn-primary" id="editPostSubmitButton">Submit</button>
   </div>
   <input hidden type="text" id="hiddenId"></input>
-  
   </div>
   </div>
   </form>
-  </div>
-  `)
+  </div>`)
 return editPostElement;
 }; 
 
@@ -570,7 +565,10 @@ $('#messageContainer').on('click', '#deleteButtonAllPosts', async function (){
 });
 
 $('#messageContainer').on('click', '#editButtonAllPosts', function (event) {
-  $('#messageContainer').prepend(updatePostModal());
+  const modal = updatePostModal();
+  $('#message').append(modal);
+  modal.show();
+  $('.modal-backdrop').add();
   const postElem = $(this).closest('.col-sm');
   const card = postElem.data('card');
   const postId = card._id;
@@ -586,9 +584,14 @@ $('#messageContainer').on('click', '#editButtonAllPosts', function (event) {
   }
 });
 
-$('#messageContainer').on('click', '#editPostSubmitButton', async function (event) {
-  event.preventDefault();
+$('#message').on('click', '#editPostCloseButton', function (event) {
+  $('.card-body-createPost').hide();
+  render();
+})
 
+$('#message').on('click', '#editPostSubmitButton', async function (event) {
+  event.preventDefault();
+  $('.card-body-createPost').hide();
   const postData = {
     title: $('#createPostTitle').val(),
     description: $('#createPostDescription').val(),
@@ -601,24 +604,12 @@ $('#messageContainer').on('click', '#editPostSubmitButton', async function (even
   if (postData) {
     try {
       const result = await editPost(postId, postData);
-      fetchAllPosts();
-      state.posts.map((post) => {
-        if (post._id === postId) {
-          post = result.data.post;
-        }
-        const cardElem = createElementFromPost(post)
-        $("#messageContainer").prepend(cardElem);
-      }) 
+      location.reload(true);
     } catch(error) {
       console.error(error)
     }
   }
 }); 
-
-$('#messageContainer').on('click', '#editPostCloseButton', function(){
-  renderPosts();
-  render();
-});
 
 $('#message').on('click', '#search-form', function(event) {
   $('#messageContainer').empty();
