@@ -10,7 +10,7 @@ Main functionalities:
 - Search bar
 
 Technologies used:
-Front End: JQuery Javascript and Bootstrap.
-Back End: API provided.
+- Front End: JQuery Javascript and Bootstrap.
+- Back End: API provided.
 
 App accessible at: https://brave-lewin-1b56a8.netlify.app/#
