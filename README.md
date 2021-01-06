@@ -1,4 +1,4 @@
-# StrangersThings
+# StrangersThings: "Kraigslist"
 
 A Craigslist Lite Version: API fetching and Bootstrap
 
