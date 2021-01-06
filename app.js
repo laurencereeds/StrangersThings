@@ -89,8 +89,10 @@ async function fetchUserData () {
   headers: makeHeaders(),
   });
   const responseObj = await response.json();
-  state.messages = responseObj.data.messages;
-  state.username = responseObj.data.username;
+  if (responseObj.data !== null) {
+    state.messages = responseObj.data.messages;
+    state.username = responseObj.data.username;
+  }
   } catch (error) {
     console.error(error)
   }
@@ -155,7 +157,7 @@ const navBar = () => {
   if (getToken()) {
       const navBarElem = $(`
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand">Karenslist</a>
+      <a class="navbar-brand">Kraigslist</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
       </button>
@@ -169,7 +171,7 @@ const navBar = () => {
       <a class="nav-link" href="#" id="createButton" data-toggle="modal" data-target="#createPostModal">Create Post <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
-      <a class="nav-link" href="#" id="messageLink">Messages<span class="message-count"</span></a>
+      <a class="nav-link" href="#" id="messageLink">Messages<span class="badge bg-primary rounded-pill" id="badge">${state.messages.length}</span></a>
       </li>        
       <form class="form-inline my-2 my-lg-0" id="search">
       <input class="form-control mr-sm-2" type="search" id="searchInput" placeholder="Search" aria-label="Search">
@@ -177,7 +179,7 @@ const navBar = () => {
       </form>
       </ul>
       <div class="justify-content-end">
-      <span>Hi ${state.username}</span>
+      <span id="username">Hi ${state.username}</span>
       <button class="btn btn-secondary my-2 my-sm-0" id="logOutButton" type="submit">Log Out</button>
       </div>
       </div>
@@ -249,21 +251,25 @@ const createElementFromPost = (post) => {
   <div class="col-sm">
   <div class="post" style="width: 18rem;">
   <div class="card-body">
-  <h5 class="card-title">${title}</h5>
+  <h2 class="card-title">${title}</h2>
   <p class="card-text">${description}</p>
   <p class="card-text">By: ${username}</p>
   <p class="card-text">Price: ${price}</p>
   <p class="card-text">Location: ${location}</p>
   <p class="card-text">Will Deliver: ${willDeliver}</p>
   ${!isAuthor && getToken() !== undefined ? `<div class="messagefield">
-  <form class="messageSend">Contact ${username} :<input class="sendMessage" type="text" placeholder="Type Your Message" aria-label="message" id="messageField"></input>
-  <a href="#" class="btn btn-primary" id="submitMessageButton">Send Message</a></form></div>`: " "}
+  <a href="#" class="btn btn-primary" id="submitMessageButton">Contact ${username}</a></form></div>`: " "}
   ${isAuthor ? `
   <div id="button_delete_edit">
   <a href="#" class="btn btn-danger" id="deleteButtonAllPosts">Delete</a>
   <a href="#" class="btn btn-secondary" data-toogle="modal" data-target="#editPostModal" id="editButtonAllPosts">Edit</a>
   </div>
-  <div id="messages">${messages}</div>`: " "}
+  <div id="messages" class="card" style="width: 16rem">
+  <div class="card-header">Messages Received</div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"> ${messages}</li>
+    </ul>
+  </div>`: " "}
   </div>
   </div>
   </div>
@@ -274,8 +280,8 @@ const createElementFromPost = (post) => {
   const cardElement = $(`
   <div class="col-sm">
   <div class="post" style="width: 18rem;">
-  <div class="card-body">
-  <h5 class="card-title">${title}</h5>
+  <div class="card-body-loggedOut">
+  <h2 class="card-title">${title}</h2>
   <p class="card-text">${description}</p>
   <p class="card-text">By: ${username}</p>
   <p class="card-text">Price: ${price}</p>
@@ -289,17 +295,35 @@ const createElementFromPost = (post) => {
   }
 };
 
-const createElementFromMessage = (card) => {
+const createElementFromMessageReceived = (card) => {
   const {fromUser:{username}, post: {title}, content} = card;
-  const elementFromMessage = $(`
-  <div class="col-sm">
-  <div class="card-body">
-  <h5 class="card-title">Re: ${title}</h5>
-  <p class="card-text">Content: ${content}</p>
-  <p class="card-text">From: ${username}</p>
-  </div>
-  </div>`)
-return elementFromMessage;
+  const usernameState = state.username;
+  const elementFromMessageReceived = $(`
+  ${username !== usernameState ?
+  `
+  
+  <table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">From</th>
+      <th scope="col">Post</th>
+      <th scope="col">Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">${username}</th>
+      <td>${title}</td>
+      <td>${content}</td>
+    </tr>
+  </tbody>
+</table>
+  
+  ` :
+  ""
+  }
+  `).data('card', card);
+return elementFromMessageReceived;
 };
 
 const createNewPost = (myPost) => {
@@ -413,6 +437,28 @@ const updatePostModal = (myPost) => {
 return editPostElement;
 }; 
 
+const contactSeller = (myMessage) => {
+  const contactSellerElem = $(`
+  <div class="modal" id="editPostModal" aria-hidden="true">  
+    <form class="editPostForm">  
+      <div class="card" style="width: 35rem;">
+        <div class="card-body-createPost">
+          <h3 id="titleAlert">Contact Seller</h3>
+          <div class="input-group">
+          <textarea class="form-control" aria-label="With textarea" placeholder="Type Message Here"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal" id="contactSellerCloseButton">Close</button> 
+            <button type="button" class="btn btn-lg btn-primary" id="contactSellerSubmitButton">Submit</button>
+          </div>
+          <input hidden type="text" id="hiddenIdContactSeller"></input>
+        </div>
+      </div>
+    </form>
+  </div>`)
+return contactSellerElem;
+}; 
+
 $('#message').on('click','#signInButton', function triggerSignInForm(){
 $('#messageContainer').empty();
 $('#messageContainer').append(signInUser());
@@ -481,7 +527,8 @@ $('#messageContainer').on('click','#signUpValidationButton', async function sign
  $('#message').on('click','#messageLink', function messagesAccess(){
    $('#createButton').hide();
   $('#messageContainer').empty(); 
-  renderMessage(state.messages);
+  const messageReceived = renderMessageReceived(state.messages);
+  $('#messageContainer').append(messageReceived)
 });
 
 $('#message').on('click','#homeLink', function homeAccess(){
@@ -530,23 +577,46 @@ const getMessagesFromPostId = (postId) => {
   let result = "";
   state.messages.forEach(function(message) {
     if (message.post._id === postId) {
-      result=result+"<div>"+message.fromUser.username+":"+message.content+"</div>"
+      result= "<div>"+message.fromUser.username+": "+message.content+"</div>"
     }
   })
   return result;
 }; 
 
 $('#messageContainer').on('click', '#submitMessageButton', async function (event){
-  event.preventDefault();
+  const modal = contactSeller();
+  $('#message').append(modal);
+  modal.show();
+  const modalBackdrop = $('<div class="modal-backdrop"></div>');
+  $('body').append(modalBackdrop);
   const postElem = $(this).closest('.col-sm');
   const card = postElem.data('card');
   const postId = card._id;
-  const messageContent = postElem.find('.sendMessage').val();
+  const hiddenIdContactSeller = {
+  hiddenIdContactSeller: $('#hiddenIdContactSeller').val(postId)  
+  }
+});
+
+$('#message').on('click', '#contactSellerCloseButton', function (event) {
+  $('.card-body-createPost').hide();
+  $('.modal-backdrop').remove();
+  render();
+})
+
+$('#message').on('click', '#contactSellerSubmitButton', async function (event){
+  event.preventDefault();
+  $('.card-body-createPost').hide();
+  $('.modal-backdrop').remove();
+  $('#messageContainer').empty();
+  const postElem = $(this).closest('.card-body-createPost');
+  const postId = $('#hiddenIdContactSeller').val()
+  const messageContent = postElem.find('.form-control').val();
   swal("Youpi!", "Your message has been sent!", "success");
   await createMessage(postId, messageContent);
   renderPosts();
   render();
 }); 
+
 
 $('#messageContainer').on('click', '#deleteButtonAllPosts', async function (){
   const postElem = $(this).closest('.col-sm');
@@ -568,7 +638,8 @@ $('#messageContainer').on('click', '#editButtonAllPosts', function (event) {
   const modal = updatePostModal();
   $('#message').append(modal);
   modal.show();
-  $('.modal-backdrop').add();
+  const modalBackdrop = $('<div class="modal-backdrop"></div>');
+  $('body').append(modalBackdrop)
   const postElem = $(this).closest('.col-sm');
   const card = postElem.data('card');
   const postId = card._id;
@@ -586,12 +657,14 @@ $('#messageContainer').on('click', '#editButtonAllPosts', function (event) {
 
 $('#message').on('click', '#editPostCloseButton', function (event) {
   $('.card-body-createPost').hide();
+  $('.modal-backdrop').remove();
   render();
 })
 
 $('#message').on('click', '#editPostSubmitButton', async function (event) {
   event.preventDefault();
   $('.card-body-createPost').hide();
+  $('.modal-backdrop').remove();
   const postData = {
     title: $('#createPostTitle').val(),
     description: $('#createPostDescription').val(),
@@ -638,29 +711,18 @@ $('#message').on('click', '#resetButton', function(){
   renderPosts();
 });
 
-const renderMessage = async (messageCard) => {
+const renderMessageReceived = async (messageCard) => {
   $('#messageContainer').empty();
+  $('#messageContainer').append('<div id="messageReceivedDiv"><h1>Messages Received</h1></div>');
   try {
   messageCard.forEach(function(message){
-  const messageCardElem = createElementFromMessage(message)
+  const messageCardElem = createElementFromMessageReceived(message)
   $("#messageContainer").append(messageCardElem); 
   }) 
   } catch(error) {
     console.error(error)
   }
 };
-
-$('#messageContainer').on('click', '#submitMessageButton', async function (event){
-  event.preventDefault();
-  const postElem = $(this).closest('.col-sm');
-  const card = postElem.data('card');
-  const postId = card._id;
-  const messageContent = postElem.find('.sendMessage').val();
-  swal("Youpi!", "Your message has been sent!", "success");
-  await createMessage(postId, messageContent);
-  renderPosts();
-  render();
-}); 
 
 const render = (posts) => {
   const message = $('#message');

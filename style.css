@@ -9,7 +9,7 @@
 .card-body {
   box-sizing: border-box;
   display: block;
-  margin: 10px;
+  margin: 20px;
   border-color: black;
   border-width: 2px;
   border-style: solid;  
@@ -17,6 +17,20 @@
   height: 450px;
   border-radius: 10px;
   position: relative
+}
+
+.card-body-loggedOut {
+  box-sizing: border-box;
+  display: block;
+  padding: 20px;
+  margin: 20px;
+  border-color: black;
+  border-width: 2px;
+  border-style: solid;  
+  width: 300px;
+  height: 400px;
+  border-radius: 10px;
+  position: relative  
 }
 
 .form-signin, .form-signup {
@@ -64,11 +78,29 @@
     margin-left: 35%;
 }
 
-.messagefield{
+#messages {
+ position: absolute;
+ right: 5%;
+ bottom: 3rem;
+ margin: 5px;
+}
+
+.messages {
+  margin: 5px;
+}
+
+#card-header {
+  margin: 5px;
+}
+
+.messagefield {
   padding: 1px;
-  margin:5px;
+  margin:10px;
   position:absolute;
   bottom:0;
+  display: block;
+  margin-top: 0em;
+  left: 19%;
 }
 
 #submitMessageButton {
@@ -98,4 +130,36 @@
 
 .card {
   border:none;
+}
+
+.badge {
+  margin : 2px;
+  color: white;
+}
+
+.titleAlert {
+  margin: 20px;
+}
+
+.modal-backdrop {
+  opacity: .5;
+}
+
+#username {
+  font-size: 16px;
+  margin: 10px;
+}
+
+th{
+  width: 35%;
+}
+
+table{
+  margin: 10px;
+  border: 2.5px solid;
+}
+
+#messageReceivedDiv{
+  padding: 10px;
+  margin: 10px;
 }
